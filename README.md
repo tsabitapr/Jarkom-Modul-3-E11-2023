@@ -86,3 +86,7 @@ Laporan resmi praktikum Jaringan Komputer modul 3 kelompok E11
   - Solusi = buat hapus ubuntu-1, lalu buat ulang. Coba sampai bisa
 - Tidak bisa ping website tetapi bisa ping menggunakan IP address
   - Solusi = ganti jaringan (contoh = gagal saat menggunakan wifi, maka ganti menggunakan hostpot)
+- Gagal saat menjalankan isc-dhcp
+  - Solusi = remove pid menggunakan `rm /var/run/dhcpd.pid` lalu restart
+- dhcp failed pada worker
+  - Solusi = restart sampai menampilkan pesan `OK` 2 kali
