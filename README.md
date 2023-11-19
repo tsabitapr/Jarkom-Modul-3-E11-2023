@@ -403,6 +403,8 @@ cd /root/jawaban
    apt-get install lynx -y
    echo nameserver 192.168.122.1 > /etc/resolv.conf
    apt-get install apache2-utils -y
+   apt install nginx -y
+   apt install htop -y
    cd /root/jawaban
    ```
 
@@ -802,6 +804,104 @@ Lama waktu DHCP server meminjamkan alamat IP kepada Client yang melalui Switch3 
 ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/d57dcc59-06dc-4ea6-80d5-a88a7420f94d)
 
 ## NO 6
+
+**PHP WORKER (LAWINE, LINIE, LUGNER)**
+
+```bash
+echo '
+nameserver 192.168.122.1
+' > /etc/resolv.conf
+
+wget -O '/var/www/granz.channel.e11.com.zip' 'https://drive.google.com/u/0/uc?id=1ViSkRq7SmwZgdK64eRbr5Fm1EGCTPrU1&export=download'
+unzip -o /var/www/granz.channel.e11.com.zip -d /var/www/
+rm -rf /var/www/granz.channel.e11.com.zip
+
+echo '
+nameserver 10.42.1.2 # IP heiter
+' > /etc/resolv.conf
+
+# nano /etc/nginx/sites-available/jarkom
+echo '
+ server {
+    listen 80;
+
+    root /var/www/modul-3;
+
+    index index.php index.html index.htm;
+    server_name _;
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # pass PHP scripts to FastCGI server
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+    error_log /var/log/nginx/jarkom_error.log;
+    access_log /var/log/nginx/jarkom_access.log;
+ }
+' > /etc/nginx/sites-available/jarkom
+
+# buat symlink
+ln -s /etc/nginx/sites-available/jarkom /etc/nginx/sites-enabled/jarkom
+
+# unlink konfigurasi default
+unlink /etc/nginx/sites-enabled/default
+
+service php7.3-fpm start
+service nginx restart
+nginx -t
+```
+
+**1. Set DNS Server:** Mengatur file `resolv.conf` untuk menggunakan DNS server dengan alamat IP `192.168.122.1`.
+
+**2. Download Website Archive:** Menggunakan `wget` untuk mengunduh arsip situs web dari Google Drive dan menyimpannya di direktori `/var/www/`.
+
+**3. Ekstrak dan Bersihkan:** Mengekstrak isi arsip yang diunduh ke direktori `/var/www/` dan kemudian menghapus file zip tersebut.
+
+**4. Set DNS Server Baru:** Mengubah konfigurasi DNS server lagi ke `10.42.1.2`
+
+**5. Konfigurasi Virtual Host untuk Nginx:**
+
+- Membuat file konfigurasi baru untuk virtual host di direktori `/etc/nginx/sites-available/`.
+- Menentukan `root` direktori tempat file situs web berada.
+- Menentukan `server_name` dan konfigurasi untuk menangani PHP scripts.
+- Mengamankan akses ke file `.ht` dengan menolak semua permintaan ke file tersebut.
+- Menentukan lokasi file log untuk error dan access.
+
+**6. Aktifkan Virtual Host:** Membuat symlink ke direktori `/etc/nginx/sites-enabled/` untuk mengaktifkan konfigurasi virtual host yang baru.
+
+**7. Nonaktifkan Konfigurasi Default:** Menghapus symlink untuk konfigurasi virtual host default dari Nginx.
+
+**8. Mulai Ulang Layanan:** Memulai ulang layanan `php7.3-fpm` dan `nginx` untuk menerapkan perubahan konfigurasi.
+
+**9. Cek Konfigurasi Nginx:** Menjalankan `nginx -t` untuk memeriksa sintaks konfigurasi Nginx dan memastikan tidak ada kesalahan sebelum server mulai menjalankannya.
+
+**TESTING CLIENT (Revolte, Richter, Sein, Stark)**
+
+```bash
+# simpan di bashrc
+# apt-get install lynx -y
+# lugner
+lynx http://10.42.3.1
+# linie
+lynx http://10.42.3.2
+# Lawine
+lynx http://10.42.3.3
+
+lynx http://granz.channel.e11.com
+```
+
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/d0eee6aa-cf16-4bd4-837b-4fb5d1c834e7)
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/25662de9-1358-4429-b36b-71bb09424411)
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/caee0e3b-e1e7-4029-af07-5c6a3ac8bafc)
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/f85f1791-d09e-40e6-ad07-55ada4b7bc7c)
 
 ## NO 7
 
