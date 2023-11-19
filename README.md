@@ -1357,6 +1357,69 @@ Output:
   
 ## NO 13
 
+Untuk mengerjakan soal nomor 13, pastikan sudah melakukan installasi yang ada di `/root/.bashrc` pada setiap Worker Laravel, yaitu
+
+DENKEN - DATABASE SERVER
+```bash
+apt-get install mariadb-server -y
+service mysql start
+```
+
+WORKER LARAVEL
+```bash
+apt-get install mariadb-client -y
+```
+
+DENKEN - DATABASE SERVER
+
+- Pada database server tambahkan script berikut pada `/etc/mysql/my.cnf`:
+
+  ```bash
+  [mysqld]
+  skip-networking=0
+  skip-bind-address
+  ```
+
+- Kemudian ubah `bind-address = 0.0.0.0` yang ada pada `/etc/mysql/mariadb.conf.d/50-server.cnf`
+- restart mysql
+  ```bash
+  service mysql restart
+  ```
+- masuk ke mysql dengan menggunakan root
+  ```bash
+  mysql -u root -p
+  ```
+- Jalankan syntax berikut untuk membuat user, database, dan memberikan privilages kepada user:
+  ```bash
+  CREATE USER 'kelompoke11'@'%' IDENTIFIED BY 'passworde11';
+  CREATE USER 'kelompoke11'@'localhost' IDENTIFIED BY 'passworde11';
+  CREATE USER 'kelompoke11'@'10.42.4.1' IDENTIFIED BY 'passworde11';
+  CREATE USER 'kelompoke11'@'10.42.4.2' IDENTIFIED BY 'passworde11';
+  CREATE USER 'kelompoke11'@'10.42.4.3' IDENTIFIED BY 'passworde11';
+  CREATE DATABASE dbkelompoke11;
+  GRANT ALL PRIVILEGES ON *.* TO 'kelompoke11'@'%';
+  GRANT ALL PRIVILEGES ON *.* TO 'kelompoke11'@'localhost';
+  GRANT ALL PRIVILEGES ON *.* TO 'kelompoke11'@'10.42.4.1';
+  GRANT ALL PRIVILEGES ON *.* TO 'kelompoke11'@'10.42.4.2';
+  GRANT ALL PRIVILEGES ON *.* TO 'kelompoke11'@'10.42.4.3';
+  FLUSH PRIVILEGES;
+  ```
+- Cek database dengan menggunakan perintah
+  ```bash
+  SHOW DATABASES;
+  ```
+  ![13](./img-output/13-denkensb.jpg)
+
+**TESTING DI WORKER LARAVEL:**
+
+Gunakan mariadb dengan menggunakkan user dan password yang sudah dibuat pada database server:
+
+```bash
+mariadb --host=10.42.2.1 --port=3306 --user=kelompoke11 --password
+```
+
+![13](./img-output/13-worker.jpg)
+
 ## NO 14
 
 ## NO 15
