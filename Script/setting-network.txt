@@ -1,0 +1,96 @@
+SETTING NETWORK
+AURA - ROUTER (DHCP RELAY)
+auto eth0
+iface eth0 inet dhcp
+
+auto eth1
+iface eth1 inet static
+	address 10.42.1.42
+	netmask 255.255.255.0
+
+auto eth2
+iface eth2 inet static
+	address 10.42.2.42
+	netmask 255.255.255.0
+
+auto eth3
+iface eth3 inet static
+	address 10.42.3.42
+	netmask 255.255.255.0
+
+auto eth4
+iface eth4 inet static
+	address 10.42.4.42
+	netmask 255.255.255.0
+
+Switch 1
+HIMMEL - DHCP SERVER
+auto eth0
+iface eth0 inet static
+	address 10.42.1.1
+	netmask 255.255.255.0
+	gateway 10.42.1.42
+
+HEITER - DNS SERVER
+auto eth0
+iface eth0 inet static
+	address 10.42.1.2
+	netmask 255.255.255.0
+	gateway 10.42.1.42
+
+Switch 2
+DENKEN - DATABASE SERVER
+auto eth0
+iface eth0 inet static
+	address 10.42.2.1
+	netmask 255.255.255.0
+	gateway 10.42.2.42
+
+EISEN - LOAD BALANCER
+auto eth0
+iface eth0 inet static
+	address 10.42.2.2
+	netmask 255.255.255.0
+	gateway 10.42.2.42
+
+Switch 3
+LUGNER - PHP WORKER
+auto eth0
+iface eth0 inet dhcp
+
+LINIE - PHP WORKER
+auto eth0
+iface eth0 inet dhcp
+
+LAWINE - PHP WORKER
+auto eth0
+iface eth0 inet dhcp
+
+RICHTER - CLIENT
+auto eth0
+iface eth0 inet dhcp
+
+REVOLTE - CLIENT
+auto eth0
+iface eth0 inet dhcp
+
+Switch 4
+SEIN - CLIENT
+auto eth0
+iface eth0 inet dhcp
+
+STARK - CLIENT
+auto eth0
+iface eth0 inet dhcp
+
+FRIEREN - LARAVEL WORKER
+auto eth0
+iface eth0 inet dhcp
+
+FLAMME - LARAVEL WORKER
+auto eth0
+iface eth0 inet dhcp
+
+FERN - LARAVEL WORKER
+auto eth0
+iface eth0 inet dhcp
