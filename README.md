@@ -1422,6 +1422,143 @@ mariadb --host=10.42.2.1 --port=3306 --user=kelompoke11 --password
 
 ## NO 14
 
+**WORKER LARAVEL**
+
+- Untuk mengerjakan soal nomor 14, pastikan sudah melakukan installasi yang ada di `/root/.bashrc` pada setiap Worker Laravel, yaitu
+
+  ```bash
+  apt-get update
+  apt-get install -y lsb-release ca-certificates apt-transport-https software-properties-common gnupg2
+  curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+  sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+  apt-get install php8.0-mbstring php8.0-xml php8.0-cli php8.0-common php8.0-intl php8.0-opcache php8.0-readline php8.0-mysql php8.0-fpm php8.0-curl unzip wget -y
+  apt-get install nginx -y
+  apt-get install git -y
+  apt-get install lynx -y
+  service nginx start
+  service php8.0-fpm start
+  ```
+- Install composer dan simpan ke dalam `/usr/bind`
+
+  ```bash
+  wget https://getcomposer.org/download/2.0.13/composer.phar
+  chmod +x composer.phar
+  mv composer.phar /usr/bin/composer
+  ```
+
+- clone source github laravel dengan `git` dan update composer
+ 
+  ```bash
+  cd /var/www && git clone https://github.com/martuafernando/laravel-praktikum-jarkom
+  cd /var/www/laravel-praktikum-jarkom && composer update
+  ```
+
+- Atur konfigurasi database yang sesuai seperti nomor 13 pada `/var/www/laravel-praktikum-jarkom/.env`
+
+  ```bash
+  cd /var/www/laravel-praktikum-jarkom && cp .env.example .env
+  APP_ENV=local
+  APP_KEY=
+  APP_DEBUG=true
+  APP_URL=http://localhost
+
+  LOG_CHANNEL=stack
+  LOG_DEPRECATIONS_CHANNEL=null
+  LOG_LEVEL=debug
+
+  DB_CONNECTION=mysql
+  DB_HOST=10.42.2.1
+  DB_PORT=3306
+  DB_DATABASE=dbkelompoke11
+  DB_USERNAME=kelompoke11
+  DB_PASSWORD=passworde11
+  ```
+
+- run syntax berikut di salah satu worker saja. Dalam kasus ini, kami memilih worker frieren.
+
+  ```bash
+  php artisan migrate:fresh
+  php artisan db:seed --class=AiringsTableSeeder
+  ```
+
+- run syntax berikut di semua worker
+
+  ```bash
+  php artisan key:generate
+  php artisan jwt:secret
+  ```
+
+- Lakukan konfigurasi site nginx sesuai dengan port masing-masing worker
+  ```bash
+  # KONFIGURASI SITE NGINX
+  # ubah port sesuai worker
+  # 10.42.4.1:8001; # Fern 
+  # 10.42.4.2:8002; # Flamme
+  # 10.42.4.3:8003; # Frieren
+  echo 'server {
+    listen 8003;
+
+    root /var/www/laravel-praktikum-jarkom/public;
+
+    index index.php index.html index.htm;
+    server_name _;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # pass PHP scripts to FastCGI server
+    location ~ \.php$ {
+      include snippets/fastcgi-php.conf;
+      fastcgi_pass unix:/var/run/php/php8.0-fpm.sock;
+    }
+
+    location ~ /\.ht {
+            deny all;
+    }
+
+    error_log /var/log/nginx/implementasi_error.log;
+    access_log /var/log/nginx/implementasi_access.log;
+  }' > /etc/nginx/sites-available/laravel-worker
+  ```
+- simpan symlink dan restart nginx dan php8.0-fpm
+  ```bash
+  # simpan symlink
+  ln -s /etc/nginx/sites-available/laravel-worker /etc/nginx/sites-enabled/
+
+  unlink /etc/nginx/sites-enabled/default
+
+  chown -R www-data.www-data /var/www/laravel-praktikum-jarkom/storage
+
+  service php8.0-fpm restart
+  service nginx restart
+  nginx -t
+  ```
+
+**TESTING DI WORKER LARAVEL**
+
+Testing dilakukan di masing-masing worker dan lynx port sesuai worker yang sudah di konfigurasi sebelumnya
+
+- Fern
+
+  ```bash
+  lynx localhost:8001
+  ```
+- Flamme
+
+  ```bash
+  lynx localhost:8002
+  ```
+- Frieren
+
+  ```bash
+  lynx localhost:8003
+  ```
+
+Output:
+
+![14](./img-output/14-worker.jpg)
+
 ## NO 15
 
 Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire.
