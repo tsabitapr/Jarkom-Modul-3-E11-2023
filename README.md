@@ -1502,6 +1502,115 @@ ab -n 100 -c 10 -p login.json -T application/json http://riegel.canyon.e11.com/a
 
 ## NO 19
 
+**LARAVEL WORKER (FRIEREN, FLAMME, FERN)**
+
+Melakukan 3 kali percobaan (tidak termasuk setting-an default). Perubahan setiap percobaan berada di jumlah `pm.max_children`, `pm.start_servers`, `pm.min_spare_servers`, dan `pm.max_spare_servers`
+
+1. Default
+    ```bash
+    # Setup Awal
+    echo '[www]
+    user = www-data
+    group = www-data
+    listen = /run/php/php8.0-fpm.sock
+    listen.owner = www-data
+    listen.group = www-data
+    php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+    php_admin_flag[allow_url_fopen] = off
+
+    ; Choose how the process manager will control the number of child processes.
+
+    pm = dynamic
+    pm.max_children = 5
+    pm.start_servers = 2
+    pm.min_spare_servers = 1
+    pm.max_spare_servers = 3
+    ' > /etc/php/8.0/fpm/pool.d/www.conf
+
+    service php8.0-fpm restart
+    ```
+
+    ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/6253f6d2-6fe3-4c91-8621-b89bfaf6a6ed)
+
+
+2. Percobaan 1
+    ```bash
+    echo '
+    [www]
+    user = www-data
+    group = www-data
+    listen = /run/php/php8.0-fpm.sock
+    listen.owner = www-data
+    listen.group = www-data
+    php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+    php_admin_flag[allow_url_fopen] = off
+
+    ; Choose how the process manager will control the number of child processes.
+
+    pm = dynamic
+    pm.max_children = 25
+    pm.start_servers = 7
+    pm.min_spare_servers = 6
+    pm.max_spare_servers = 8
+    ' > /etc/php/8.0/fpm/pool.d/www.conf
+
+    service php8.0-fpm restart
+    ```
+
+    ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/12dd3275-9262-49b9-9f41-f9e3eb1e6d54)
+
+3. Percobaan 2
+    ```bash
+    echo '
+    [www]
+    user = www-data
+    group = www-data
+    listen = /run/php/php8.0-fpm.sock
+    listen.owner = www-data
+    listen.group = www-data
+    php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+    php_admin_flag[allow_url_fopen] = off
+
+    ; Choose how the process manager will control the number of child processes.
+
+    pm = dynamic
+    pm.max_children = 45
+    pm.start_servers = 12
+    pm.min_spare_servers = 11
+    pm.max_spare_servers = 13
+    ' > /etc/php/8.0/fpm/pool.d/www.conf
+
+    service php8.0-fpm restart
+    ```
+
+    ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/d05448ac-8eb7-4b06-9a13-cd1037eaa902)
+
+4. Percobaan 3
+    ```bash
+    echo '
+    [www]
+    user = www-data
+    group = www-data
+    listen = /run/php/php8.0-fpm.sock
+    listen.owner = www-data
+    listen.group = www-data
+    php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+    php_admin_flag[allow_url_fopen] = off
+
+    ; Choose how the process manager will control the number of child processes.
+
+    pm = dynamic
+    pm.max_children = 65
+    pm.start_servers = 17
+    pm.min_spare_servers = 16
+    pm.max_spare_servers = 18
+    ' > /etc/php/8.0/fpm/pool.d/www.conf
+
+    service php8.0-fpm restart
+    ```
+
+    ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/74a28519-ae7f-4f56-88dc-cfa4eb6fb018)
+
 ## NO 20
 
 # Kendala
@@ -1514,3 +1623,5 @@ ab -n 100 -c 10 -p login.json -T application/json http://riegel.canyon.e11.com/a
   - Solusi = remove pid menggunakan `rm /var/run/dhcpd.pid` lalu restart
 - dhcp failed pada worker
   - Solusi = restart sampai menampilkan pesan `OK` 2 kali
+- Unable to connect saat menjalankan lynx
+  - Solusi = jalankan semua worker, jangan hanya 1 worker
