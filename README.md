@@ -905,6 +905,73 @@ lynx http://granz.channel.e11.com
 
 ## NO 7
 
+**LOAD BALANCER (EISEN)**
+
+```bash
+# nano /etc/nginx/sites-available/lb-jarkom
+# default round robin
+echo '
+upstream worker {
+  server 10.42.3.1; # IP Lugner
+  server 10.42.3.2; # IP Linie
+  server 10.42.3.3; # IP Lawine
+}
+
+server {
+  listen 80;
+  server_name granz.channel.e11.com;
+
+  location / {
+    proxy_pass http://worker;
+    proxy_set_header    X-Real-IP $remote_addr;
+    proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header    Host $http_host;
+  }
+
+  error_log /var/log/nginx/lb_error.log;
+  access_log /var/log/nginx/lb_access.log;
+
+}
+' > /etc/nginx/sites-available/lb-jarkom
+
+# simpan symlink
+ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled/lb-jarkom
+
+unlink /etc/nginx/sites-enabled/default
+
+service nginx restart
+nginx -t
+```
+
+1. Konfigurasi Nginx untuk menggunakan metode Round Robin default (setiap server diperlakukan sama).
+2. Menetapkan IP server masing-masing (`Lugner`, `Linie`, `Lawine`) dalam grup upstream yang akan dilayani oleh load balancer.
+3. Server Load Balancer listen pada port 80 dan memproses permintaan untuk domain `granz.channel.e11.com`.
+4. Lokasi `/` akan meneruskan semua permintaan ke grup `upstream` yang telah dikonfigurasi.
+5. Menyetel header yang diperlukan untuk proxy, termasuk IP asli pengirim permintaan.
+6. Menuliskan log error dan access ke file log yang ditentukan.
+7. Menyimpan konfigurasi dan membuat symlink agar Nginx dapat membaca konfigurasi tersebut saat dimulai.
+8. Menghapus symlink konfigurasi default Nginx untuk mencegah konflik.
+9. Merestart layanan Nginx dan memeriksa konfigurasi dengan `nginx -t`.
+
+**TESTING CLIENT (Revolte, Richter, Sein, Stark)**
+
+```bash
+echo '
+nameserver 10.42.1.2 # IP heiter
+' > /etc/resolv.conf
+
+rm no7.data
+ab -n 1000 -c 100 -g no7.data http://granz.channel.e11.com/
+```
+
+1. Mengatur DNS server pada client (`Revolte`, `Richter`, `Sein`, `Stark`) untuk memastikan mereka menggunakan DNS server yang tepat (`10.42.1.2`).
+2. Menghapus data sebelumnya jika ada (`no7.data`).
+3. Menggunakan `ApacheBench (ab)` untuk melakukan 1000 requests ke domain `granz.channel.e11.com` dengan konvensi 100 requests secara bersamaan.
+4. Menyimpan hasil benchmark ke file `no7.data`.
+
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/a4c9f0c0-7486-4e98-96d1-7270a3791c9d)
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/83b91bb8-f083-4941-bb53-052df8dbde97)
+
 ## NO 8
 
 ## NO 9
