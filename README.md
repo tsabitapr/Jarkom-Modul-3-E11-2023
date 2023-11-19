@@ -1254,6 +1254,107 @@ b. lynx:
   
 ## NO 12
 
+**EISEN - LOAD BALANCER**
+
+- Selanjutnya LB ini hanya boleh diakses oleh client dengan IP [Prefix IP].3.69, [Prefix IP].3.70, [Prefix IP].4.167, dan [Prefix IP].4.168. Maka pada load balancer tambahkan script di bawah pada konfigurasi `/etc/nginx/sites-available/lb-jarkom`
+
+  ```bash
+      location / {
+      allow 10.42.3.69;
+      allow 10.42.3.70;
+      allow 10.42.4.167;
+      allow 10.42.4.168;
+      deny all;
+
+      proxy_pass http://worker;
+      proxy_set_header    X-Real-IP $remote_addr;
+      proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header    Host $http_host;
+
+      auth_basic "Restricted Area";
+      auth_basic_user_file /etc/nginx/rahasiakita/htpasswd;
+    }
+  ```
+
+- Lalu simpan symlink
+
+  ```bash
+  ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled/lb-jarkom
+  ```
+
+- dan restart nginx
+
+  ```bash
+  service nginx restart
+  nginx -t
+  ```
+
+**Script full**:
+
+```bash
+echo '
+upstream worker {
+  server 10.42.3.1; # IP Lugner
+  server 10.42.3.2; # IP Linie
+  server 10.42.3.3; # IP Lawine
+}
+
+server {
+  listen 80;
+  server_name granz.channel.e11.com;
+
+  location / {
+    allow 10.42.3.69;
+    allow 10.42.3.70;
+    allow 10.42.4.167;
+    allow 10.42.4.168;
+    deny all;
+
+    proxy_pass http://worker;
+    proxy_set_header    X-Real-IP $remote_addr;
+    proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header    Host $http_host;
+
+    auth_basic "Restricted Area";
+    auth_basic_user_file /etc/nginx/rahasiakita/htpasswd;
+  }
+
+  location ~ /its {
+    proxy_pass https://www.its.ac.id;
+    auth_basic "Restricted Area";
+    auth_basic_user_file /etc/nginx/rahasiakita/htpasswd;
+  }
+
+  location ~ /\.ht {
+    deny all;
+  }
+
+error_log /var/log/nginx/lb_error.log;
+access_log /var/log/nginx/lb_access.log;
+}
+' > /etc/nginx/sites-available/lb-jarkom
+
+# simpan symlink
+ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled/lb-jarkom
+
+unlink /etc/nginx/sites-enabled/default
+
+service nginx restart
+nginx -t
+```
+
+**TESTING DI CLIENT**
+
+```bash
+lynx http://granz.channel.e11.com/
+```
+
+Output:
+
+- client dengan IP yang tidak memenuhi syarat:
+
+  ![12](./img-output/12-forbidden.jpg)
+  
 ## NO 13
 
 ## NO 14
