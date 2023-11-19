@@ -363,14 +363,6 @@ cd /root/jawaban
    apt-get install mariadb-server -y
    service mysql start
    cd /root/jawaban
-
-
-       # echo 'nameserver 192.173.1.2' > /etc/resolv.conf
-       # apt-get update
-       # apt-get install mariadb-server -y
-       # service mysql start
-       # Lalu jangan lupa untuk mengganti [bind-address] pada file /etc/mysql/mariadb.conf.d/50-server.cnf menjadi 0.0.0.0 dan
-       # jangan lupa untuk melakukan restart mysql kembali
    ```
 
 8. WORKER - LARAVEL (Frieren, Flamme, Fern)
@@ -404,7 +396,6 @@ cd /root/jawaban
    echo nameserver 192.168.122.1 > /etc/resolv.conf
    apt-get install apache2-utils -y
    apt install nginx -y
-   apt install htop -y
    cd /root/jawaban
    ```
 
@@ -1156,146 +1147,35 @@ ab -n 1000 -c 100 -g no7.data http://granz.channel.e11.com/
    
 ## NO 9
 
-**1. LOAD BALANCER (EISEN)**
+## NO 10
+
+## NO 11
+**EISEN - LOAD BALANCER**
+
+Pada node eisen, di dalam konfigurasi `/etc/nginx/sites-available/lb-jarkom` tambahkan syntax berikut:
 ```bash
-# nano /etc/nginx/sites-available/lb-jarkom
-# default round robin
-echo '
-upstream worker {
-  server 10.42.3.1; # IP Lugner
-  server 10.42.3.2; # IP Linie
-  server 10.42.3.3; # IP Lawine
-}
-
-server {
-  listen 80;
-  server_name granz.channel.e11.com;
-
-  location / {
-    proxy_pass http://worker;
-    proxy_set_header    X-Real-IP $remote_addr;
-    proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header    Host $http_host;
+location ~ /its {
+    proxy_pass https://www.its.ac.id;
+    auth_basic "Restricted Area";
+    auth_basic_user_file /etc/nginx/rahasiakita/htpasswd;
   }
+```
 
-  error_log /var/log/nginx/lb_error.log;
-  access_log /var/log/nginx/lb_access.log;
-
-}
-' > /etc/nginx/sites-available/lb-jarkom
-
-# simpan symlink
+Lalu simpan symlink
+```bash
 ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled/lb-jarkom
+```
 
-unlink /etc/nginx/sites-enabled/default
-
+restart nginx
+```bash
 service nginx restart
 nginx -t
 ```
 
-**2. CLIENT (REVOLTE, RICHTER, SEIN, STARK)**
+**Script full:**
 ```bash
-ab -n 100 -c 10 http://granz.channel.e11.com/ 
-```
-
-**3. PHP WORKER (LAWINE, LINIE, LUGNER)**
-```bash
-# 2 worker
-# stop nginx di salah satu worker (linie)
-service nginx stop
-
-# 1 worker
-# stop nginx di linie dan lawine
-```
-
-**TESTING**
-
-3 worker
-
-![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/5baecf3a-600b-4957-b02b-399862fbe333)
-
-2 worker
-![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/fe48bd31-a10b-41e1-885d-830fbcb59778)
-
-1 worker
-![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/5fd84431-36e2-4818-a1d0-58e6dbf4f81a)
-
-## NO 10
-
-**HEITER (DNS SERVER)**
-```bash
-mkdir -p /etc/bind/jarkom
-
-echo '
-zone "canyon.e11.com" {
-  type master;
-  file "/etc/bind/jarkom/canyon.e11.com";
-};
-
-zone "channel.e11.com" {
-	type master;
-	file "/etc/bind/jarkom/channel.e11.com";
-};
-' > /etc/bind/named.conf.local
-
-# worker laravel
-echo '
-;
-; BIND data file for local loopback interface
-;
-$TTL    604800
-@       IN      SOA     canyon.e11.com. root.canyon.e11.com. (
-                              2         ; Serial
-                         604800         ; Refresh
-                          86400         ; Retry
-                        2419200         ; Expire
-                         604800 )       ; Negative Cache TTL
-;
-@       IN      NS      canyon.e11.com.
-@       IN      A       10.42.2.2 ; IP EISEN LB
-riegel  IN      A       10.42.4.1 ; IP Fern LARAVEL WORKER
-@       IN      AAAA    ::1
-' > /etc/bind/jarkom/canyon.e11.com
-
-# worker PHP
-echo '
-;
-; BIND data file for local loopback interface
-;
-$TTL    604800
-@       IN      SOA     channel.e11.com. root.channel.e11.com. (
-                              2         ; Serial
-                         604800         ; Refresh
-                          86400         ; Retry
-                        2419200         ; Expire
-                         604800 )       ; Negative Cache TTL
-;
-@       IN      NS      channel.e11.com.
-@       IN      A       10.42.2.2 ; IP EISEN LB
-granz   IN      A       10.42.2.2 ; IP EISEN LB
-@       IN      AAAA    ::1
-' > /etc/bind/jarkom/channel.e11.com
-
-echo 'options {
-      directory "/var/cache/bind";
-
-      forwarders {
-              192.168.122.1;
-      };
-
-      // dnssec-validation auto;
-      allow-query{any;};
-      auth-nxdomain no;    # conform to RFC1035
-      listen-on-v6 { any; };
-}; ' >/etc/bind/named.conf.options
-
-service bind9 restart
-```
-
-**EISEN (LOAD BALANCER)**
-```bash
-mkdir -p /etc/nginx/rahasiakita
-htpasswd -c /etc/nginx/rahasiakita/htpasswd netics
+# mkdir -p /etc/nginx/rahasiakita
+# htpasswd -c /etc/nginx/rahasiakita/htpasswd netics
 # masukkan password: ajke11
 # username: netics
 
@@ -1316,7 +1196,13 @@ server {
     proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header    Host $http_host;
 
-    auth_basic "Administrator`s Area";
+    auth_basic "Restricted Area";
+    auth_basic_user_file /etc/nginx/rahasiakita/htpasswd;
+  }
+
+  location ~ /its {
+    proxy_pass https://www.its.ac.id;
+    auth_basic "Restricted Area";
     auth_basic_user_file /etc/nginx/rahasiakita/htpasswd;
   }
 
@@ -1337,22 +1223,35 @@ unlink /etc/nginx/sites-enabled/default
 service nginx restart
 nginx -t
 ```
+<br>
 
-**CLIENT (REVOLTE, RICHTER, SEIN, STARK)**
+**TESTING DI CLIENT**
+
+Setelah selesai melakukan konfigurasi di load balancer, selanjutnya adalah testing di client.
+
+**Script full:**
 ```bash
-# tambahkan argumen -A dan username:password
-ab -A netics:ajkae11 -n 100 -c 100 http://granz.channel.e11.com/
-lynx http://granz.channel.e11.com/
+ab -A netics:ajkae11 -n 100 -c 100 http://granz.channel.e11.com/its/
+
+lynx http://granz.channel.e11.com/its
 ```
 
-![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/b76f533b-a74f-4714-a35b-a0e77060bc35)
-![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/61027e72-0d7e-497c-8fdd-fc2b93bb0d0f)
-![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/ae9f4ced-9e77-4915-84bf-e6a280dd9c3b)
-![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/51193336-740f-4c58-85f8-15526eb4a6f5)
-![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/16ec1922-3229-4d4d-b6bc-e0b3372f87c9)
+OUTPUT:
 
-## NO 11
+a. benchmark:
 
+  ![11_1](./img-output/11-benchmark.jpg)
+
+b. lynx:
+
+  ![11_2](./img-output/11-lynx1.jpg)
+
+  ![11_3](./img-output/11-lynx2.jpg)
+
+  ![11_3](./img-output/11-lynx3.jpg)
+
+  ![11_3](./img-output/11-lynx4.jpg)
+  
 ## NO 12
 
 ## NO 13
