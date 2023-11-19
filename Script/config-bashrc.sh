@@ -47,15 +47,6 @@ apt-get install mariadb-server -y
 service mysql start
 cd /root/jawaban
 
-
-    # echo 'nameserver 192.173.1.2' > /etc/resolv.conf
-    # apt-get update
-    # apt-get install mariadb-server -y
-    # service mysql start
-    # Lalu jangan lupa untuk mengganti [bind-address] pada file /etc/mysql/mariadb.conf.d/50-server.cnf menjadi 0.0.0.0 dan 
-    # jangan lupa untuk melakukan restart mysql kembali
-
-
 WORKER - LARAVEL
 echo nameserver 192.168.122.1 > /etc/resolv.conf
 apt-get update
