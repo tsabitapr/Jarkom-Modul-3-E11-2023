@@ -973,7 +973,187 @@ ab -n 1000 -c 100 -g no7.data http://granz.channel.e11.com/
 ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/83b91bb8-f083-4941-bb53-052df8dbde97)
 
 ## NO 8
+1. Weighted Round Robin
 
+    a. LOAD BALANCER (EISEN)
+    ```bash
+      # nano /etc/nginx/sites-available/lb-jarkom
+      echo '
+      upstream weightedrb {
+        server 10.42.3.1 weight=4; # IP Lugner
+        server 10.42.3.2 weight=3; # IP Linie
+        server 10.42.3.3 weight=2; # IP Lawine
+      }
+
+      server {
+        listen 80;
+        server_name granz.channel.e11.com;
+
+        location / {
+          proxy_pass http://weightedrb;
+          proxy_set_header    X-Real-IP $remote_addr;
+          proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header    Host $http_host;
+        }
+        error_log /var/log/nginx/lb_error.log;
+        access_log /var/log/nginx/lb_access.log;
+      }
+      ' > /etc/nginx/sites-available/lb-jarkom
+
+      # simpan symlink
+      ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled/lb-jarkom
+
+      unlink /etc/nginx/sites-enabled/default
+
+      service nginx restart
+      nginx -t
+      ```
+      
+    b. TESTING CLIENT (Revolte, Richter, Sein, Stark)
+      ```bash
+      rm no8-wrb.data
+      ab -n 200 -c 10 -g no8-wrb.data http://granz.channel.e11.com/
+      ```
+      
+      ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/3d282838-8bcf-40fc-9da8-c2d0ba3a6b4c)
+
+2. Least Connection
+
+    a. LOAD BALANCER (EISEN)
+      ```bash
+      # nano /etc/nginx/sites-available/lb-jarkom
+      echo '
+      upstream least {
+        least_conn;
+        server 10.42.3.1; # IP Lugner
+        server 10.42.3.2; # IP Linie
+        server 10.42.3.3; # IP Lawine
+      }
+
+      server {
+        listen 80;
+        server_name granz.channel.e11.com;
+
+        location / {
+          proxy_pass http://least;
+          proxy_set_header    X-Real-IP $remote_addr;
+          proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header    Host $http_host;
+        }
+        error_log /var/log/nginx/lb_error.log;
+        access_log /var/log/nginx/lb_access.log;
+      }
+      ' > /etc/nginx/sites-available/lb-jarkom
+
+      # simpan symlink
+      ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled/lb-jarkom
+
+      unlink /etc/nginx/sites-enabled/default
+
+      service nginx restart
+      nginx -t
+      ```
+
+    b. TESTING CLIENT (Revolte, Richter, Sein, Stark)
+      ```bash
+      rm no8-leastconnection.data
+      ab -n 200 -c 10 -g no8-leastconnection.data http://granz.channel.e11.com/
+      ```
+
+      ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/ad45a72a-2553-4fbf-8821-150c96ba6688)
+
+3. IP Hash
+
+    a. LOAD BALANCER (EISEN)
+      ```bash
+      # nano /etc/nginx/sites-available/lb-jarkom
+      echo '
+      upstream iphash {
+        ip_hash;
+        server 10.42.3.1; # IP Lugner
+        server 10.42.3.2; # IP Linie
+        server 10.42.3.3; # IP Lawine
+      }
+
+      server {
+        listen 80;
+        server_name granz.channel.e11.com;
+
+
+        location / {
+          proxy_pass http://iphash;
+          proxy_set_header    X-Real-IP $remote_addr;
+          proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header    Host $http_host;
+        }
+        error_log /var/log/nginx/lb_error.log;
+        access_log /var/log/nginx/lb_access.log;
+      }
+      ' > /etc/nginx/sites-available/lb-jarkom
+
+      # simpan symlink
+      ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled/lb-jarkom
+
+      unlink /etc/nginx/sites-enabled/default
+
+      service nginx restart
+      nginx -t
+      ```
+
+    b. TESTING CLIENT (Revolte, Richter, Sein, Stark)
+      ```bash
+      rm no8-iphash.data
+      ab -n 200 -c 10 -g no8-iphash.data http://granz.channel.e11.com/
+      ```
+
+      ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/7ff8bff5-2404-4bf5-b473-2d7e736caa17)
+
+4. Generic Hash
+
+    a. LOAD BALANCER (EISEN)
+      ```bash
+      # nano /etc/nginx/sites-available/lb-jarkom
+      echo '
+      upstream generichash {
+        hash $request_uri consistent;
+        server 10.42.3.1; # IP Lugner
+        server 10.42.3.2; # IP Linie
+        server 10.42.3.3; # IP Lawine
+      }
+
+
+      server {
+        listen 80;
+        server_name granz.channel.e11.com;
+
+
+        location / {
+          proxy_pass http://generichash;
+          proxy_set_header    X-Real-IP $remote_addr;
+          proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header    Host $http_host;
+        }
+        error_log /var/log/nginx/lb_error.log;
+        access_log /var/log/nginx/lb_access.log;
+      }
+      ' > /etc/nginx/sites-available/lb-jarkom
+
+      # simpan symlink
+      ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled/lb-jarkom
+
+      unlink /etc/nginx/sites-enabled/default
+      service nginx restart
+      nginx -t
+      ```
+
+    b. TESTING CLIENT (Revolte, Richter, Sein, Stark)
+      ```bash
+      rm no8-generichash.data
+      ab -n 200 -c 10 -g no8-generichash.data http://granz.channel.e11.com/
+      ```
+
+      ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/47e89d92-d852-439d-82e2-cab626e3b26b)
+   
 ## NO 9
 
 ## NO 10
