@@ -7,6 +7,8 @@ Laporan resmi praktikum Jaringan Komputer modul 3 kelompok E11
 | Sarah Nurhasna Khairunnisa | 5025211105 |
 | Tsabita Putri Ramadhany    | 5025211130 |
 
+> Link Project GNS3: https://its.id/m/Jarkom-Modul-3-E11-2023
+
 # Daftar Isi
 
 - [SOAL](#soal)
