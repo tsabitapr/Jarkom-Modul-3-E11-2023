@@ -1156,6 +1156,70 @@ ab -n 1000 -c 100 -g no7.data http://granz.channel.e11.com/
    
 ## NO 9
 
+**1. LOAD BALANCER (EISEN)**
+```bash
+# nano /etc/nginx/sites-available/lb-jarkom
+# default round robin
+echo '
+upstream worker {
+  server 10.42.3.1; # IP Lugner
+  server 10.42.3.2; # IP Linie
+  server 10.42.3.3; # IP Lawine
+}
+
+server {
+  listen 80;
+  server_name granz.channel.e11.com;
+
+  location / {
+    proxy_pass http://worker;
+    proxy_set_header    X-Real-IP $remote_addr;
+    proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header    Host $http_host;
+  }
+
+  error_log /var/log/nginx/lb_error.log;
+  access_log /var/log/nginx/lb_access.log;
+
+}
+' > /etc/nginx/sites-available/lb-jarkom
+
+# simpan symlink
+ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled/lb-jarkom
+
+unlink /etc/nginx/sites-enabled/default
+
+service nginx restart
+nginx -t
+```
+
+**2. CLIENT (REVOLTE, RICHTER, SEIN, STARK)**
+```bash
+ab -n 100 -c 10 http://granz.channel.e11.com/ 
+```
+
+**3. PHP WORKER (LAWINE, LINIE, LUGNER)**
+```bash
+# 2 worker
+# stop nginx di salah satu worker (linie)
+service nginx stop
+
+# 1 worker
+# stop nginx di linie dan lawine
+```
+
+**TESTING**
+
+3 worker
+
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/5baecf3a-600b-4957-b02b-399862fbe333)
+
+2 worker
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/fe48bd31-a10b-41e1-885d-830fbcb59778)
+
+1 worker
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/5fd84431-36e2-4818-a1d0-58e6dbf4f81a)
+
 ## NO 10
 
 ## NO 11
