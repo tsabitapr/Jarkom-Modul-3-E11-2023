@@ -1260,9 +1260,112 @@ b. lynx:
 
 ## NO 15
 
+Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire.
+
+a. POST /auth/register
+
+**TESTING CLIENT (REVOLTE, RICHTER, SEIN, STARK)**
+
+```bash
+# register
+echo '
+{
+  "username": "kelompoke11",
+  "password": "passworde11"
+}
+' > register.json
+
+ab -n 100 -c 10 -p /root/jawaban/register.json -T application/json http://10.42.4.1:8001/api/auth/register
+```
+
+1. Pembuatan File JSON: membuat sebuah file JSON dengan nama `register.json` yang berisi data pengguna untuk registrasi, termasuk username dan password.
+
+2. Penyimpanan Data: Data pengguna yang berupa `username` dan `password` disimpan dalam file tersebut dengan format JSON.
+
+3. Penggunaan ApacheBench (ab): ApacheBench, yang dipanggil dengan `ab`, digunakan untuk melakukan simulasi pengujian beban pada endpoint POST /auth/register dari aplikasi Riegel Channel.
+
+4. Konfigurasi Pengujian: Script mengonfigurasi ApacheBench untuk menjalankan total 100 request dengan tingkat konkurensi 10 request per detik.
+
+5. Jenis Konten: Dengan menggunakan opsi `-T`, script menetapkan `Content-Type` dari request sebagai `application/json`, yang menunjukkan bahwa data yang dikirim adalah dalam format JSON.
+
+6. Endpoint Target: Request ditujukan ke endpoint `http://10.42.4.1:8001/api/auth/register`, yang merupakan API untuk registrasi pengguna di server dengan alamat IP `10.42.4.1` pada port `8001`.
+
+7. File Data: Opsi `-p` memberitahu ApacheBench untuk mengirim konten dari file `register.json` sebagai payload dari request POST.
+
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/18ef53d4-9fc3-4b3a-859b-c8a6920b81e9)
+
 ## NO 16
 
+Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire.
+
+b. POST /auth/login
+
+**TESTING CLIENT (REVOLTE, RICHTER, SEIN, STARK)**
+
+```bash
+# login
+echo '
+{
+  "username": "kelompoke11",
+  "password": "passworde11"
+}
+' > login.json
+
+ab -n 100 -c 10 -p /root/jawaban/login.json -T application/json http://10.42.4.1:8001/api/auth/login
+```
+
+1. Buat File JSON untuk Login: membuat file `login.json` yang berisi data pengguna untuk proses login, termasuk `username` dan `password`.
+
+2. Simpan Data Pengguna: Data untuk proses autentikasi disimpan di dalam file `login.json` dengan format JSON, yang mencakup kredensial seperti username dan password.
+
+3. Gunakan ApacheBench untuk Pengujian: ApacheBench (`ab`) digunakan untuk melakukan pengujian beban pada endpoint login, yang direpresentasikan oleh `POST /auth/login`.
+
+4. Atur Jumlah Request: Pengujian diatur untuk menjalankan 100 request secara total.
+
+5. Atur Konkurensi: Tingkat konkurensi diatur pada 10 request per detik, yang berarti ApacheBench akan mencoba mengirim sepuluh request bersamaan dalam satu detik.
+
+6. Tentukan Tipe Konten: Dengan menggunakan opsi `-T`, script menyatakan bahwa tipe konten yang dikirim adalah `application/json`, yang mengindikasikan bahwa data dikirim dalam format JSON.
+
+7. Tentukan Endpoint Tujuan: Request dikirim ke `http://10.42.4.1:8001/api/auth/login`, yang merupakan URL untuk endpoint login pada aplikasi, di mana `10.42.4.1` adalah alamat IP server dan `8001` adalah port yang digunakan.
+
+8. Gunakan File Data untuk Request: Opsi `-p` memberitahu ApacheBench untuk mengirimkan isi dari file `login.json` sebagai data dalam request POST.
+
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/5ba5bac0-d58e-41b2-b082-ab609ef0db55)
+
 ## NO 17
+
+Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire.
+
+c. GET /me
+
+**TESTING CLIENT (REVOLTE, RICHTER, SEIN, STARK)**
+
+```bash
+# dapatkan token user
+curl -X POST -H "Content-Type: application/json" -d @login.json http://10.42.4.1:8001/api/auth/login > token.txt
+
+token=$(cat token.txt); ab -n 100 -c 10 -H "Authorization: Bearer $token" http://10.42.4.1:8001/api/me
+
+# bisa cek log di worker fern --> cat /var/log/nginx/implementasi_access.log
+```
+
+1. Mendapatkan Token User: menggunakan `curl` untuk membuat POST request ke endpoint `/api/auth/login` dengan mengirimkan data autentikasi yang sudah tersimpan di `login.json`. Ini adalah langkah awal untuk mendapatkan token akses yang dibutuhkan untuk autentikasi pada endpoint selanjutnya.
+
+2. Simpan Token ke File: Respons dari command `curl`, yang berisi token akses, disimpan ke dalam file `token.txt`.
+
+3. Ekstrak Token dari File: Dengan menggunakan command `cat`, token yang diperoleh dari respons sebelumnya diekstraksi dan disimpan dalam variabel `token`.
+
+4. Gunakan ApacheBench untuk Testing: ApacheBench (`ab`) digunakan lagi untuk melakukan pengujian beban pada endpoint `/api/me` yang biasanya digunakan untuk mengambil informasi pengguna yang sudah login.
+
+5. Atur Jumlah Request dan Konkurensi: Pengujian diatur untuk menjalankan 100 request dengan tingkat konkurensi 10 request per detik, mirip dengan pengujian sebelumnya.
+
+6. Sertakan Header Authorization: Dalam setiap request yang dibuat oleh ApacheBench, header `Authorization` disertakan dengan token akses yang diperoleh dari proses login sebelumnya. Ini diperlukan untuk mengakses endpoint yang memerlukan autentikasi.
+
+7. Pengujian pada Beberapa Client: Serupa dengan pengujian sebelumnya, script ini dijalankan pada berbagai client (`Revolte`, `Richter`, `Sein`, `Stark`), untuk memeriksa bagaimana endpoint `/api/me` menangani beban dari sumber yang berbeda.
+
+8. Cek Log di Worker Fern: Terdapat sebuah instruksi tambahan untuk memeriksa log akses di worker `Fern` (salah satu dari server yang digunakan), yang terletak di `/var/log/nginx/implementasi_access.log`. Ini membantu untuk menganalisis hasil dari pengujian beban yang telah dilakukan.
+
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/a0725300-4a52-4a45-8b41-d8c9cbe527ce)
 
 ## NO 18
 
