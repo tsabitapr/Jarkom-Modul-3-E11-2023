@@ -1914,6 +1914,78 @@ Melakukan 3 kali percobaan (tidak termasuk setting-an default). Perubahan setiap
 
 ## NO 20
 
+**EISEN - LOAD BALANCER**
+
+- Untuk konfigurasi menggunakan metode least connection maka tambahkan `least_conn;` pada konfigurasi `/etc/nginx/sites-available/laravel-worker`. Simpan symlink dan restart nginx
+
+- Script full:
+  ```bash
+  echo 'upstream Lworker {
+      least_conn;
+      server 10.42.4.1:8001; # IP FERN
+      server 10.42.4.2:8002; # IP FLAMME
+      server 10.42.4.3:8003; # IP FRIEREN
+  }
+
+  server {
+      listen 80;
+      server_name riegel.canyon.e11.com;
+
+      location / {
+      proxy_pass http://Lworker;
+      proxy_set_header    X-Real-IP $remote_addr;
+      proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header    Host $http_host;
+    }
+
+    error_log /var/log/nginx/laravel_error.log;
+    access_log /var/log/nginx/laravel_access.log;
+  } 
+  ' > /etc/nginx/sites-available/laravel-worker
+
+  ln -s /etc/nginx/sites-available/laravel-worker /etc/nginx/sites-enabled/laravel-worker
+
+  service nginx restart
+  nginx -t
+  ```
+- Untuk pengaturan `/etc/php/8.0/fpm/pool.d/www.conf` diubah kembali menjadi default
+  ```bash
+  echo '[www]
+  user = www-data
+  group = www-data
+  listen = /run/php/php8.0-fpm.sock
+  listen.owner = www-data
+  listen.group = www-data
+  php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+  php_admin_flag[allow_url_fopen] = off
+
+  ; Choose how the process manager will control the number of child processes.
+
+  pm = dynamic
+  pm.max_children = 5
+  pm.start_servers = 2
+  pm.min_spare_servers = 1
+  pm.max_spare_servers = 3
+  ' > /etc/php/8.0/fpm/pool.d/www.conf
+
+  service php8.0-fpm restart
+  ```
+
+
+**TESTING DI CLIENT**
+
+```bash
+ab -n 100 -c 10 -T 'application/json' -p login.json -g login_results2.data http://riegel.canyon.e11.com/api/auth/login
+```
+
+**Output:**
+
+![20](./img-output/20-output.jpg)
+
+**Kesimpulan:**
+
+Dapat dilihat bahwa request per second dengan menggunakan algoritma least connection lebih banyak dibandingkan algoritma round robin. Dengan demikian, dapat disimpulkan algoritma least connection lebih efektif dibandingkan dengan algoritma round robin.
+
 # Kendala
 
 - Gagal drag debian-1 yang sudah dibuat ke dalam halaman karena "docker not exist"
