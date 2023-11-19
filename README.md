@@ -1209,9 +1209,11 @@ service nginx stop
 ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/5baecf3a-600b-4957-b02b-399862fbe333)
 
 2 worker
+
 ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/fe48bd31-a10b-41e1-885d-830fbcb59778)
 
 1 worker
+
 ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/5fd84431-36e2-4818-a1d0-58e6dbf4f81a)
 
 ## NO 10
