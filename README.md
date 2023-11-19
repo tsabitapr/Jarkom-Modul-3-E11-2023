@@ -1369,6 +1369,137 @@ token=$(cat token.txt); ab -n 100 -c 10 -H "Authorization: Bearer $token" http:/
 
 ## NO 18
 
+1. HEITER - DNS SERVER
+
+   ```bash
+   mkdir -p /etc/bind/jarkom
+
+   echo '
+   zone "canyon.e11.com" {
+     type master;
+     file "/etc/bind/jarkom/canyon.e11.com";
+   };
+
+   zone "channel.e11.com" {
+     type master;
+     file "/etc/bind/jarkom/channel.e11.com";
+   };
+   ' > /etc/bind/named.conf.local
+
+   # worker laravel
+   echo '
+   ;
+   ; BIND data file for local loopback interface
+   ;
+   $TTL    604800
+   @       IN      SOA     canyon.e11.com. root.canyon.e11.com. (
+                                 2         ; Serial
+                           604800         ; Refresh
+                             86400         ; Retry
+                           2419200         ; Expire
+                           604800 )       ; Negative Cache TTL
+   ;
+   @       IN      NS      canyon.e11.com.
+   @       IN      A       10.42.2.2 ; IP EISEN LB
+   riegel  IN      A       10.42.2.2 ; IP EISEN LB
+   @       IN      AAAA    ::1
+   ' > /etc/bind/jarkom/canyon.e11.com
+
+   # worker PHP
+   echo '
+   ;
+   ; BIND data file for local loopback interface
+   ;
+   $TTL    604800
+   @       IN      SOA     channel.e11.com. root.channel.e11.com. (
+                                 2         ; Serial
+                           604800         ; Refresh
+                             86400         ; Retry
+                           2419200         ; Expire
+                           604800 )       ; Negative Cache TTL
+   ;
+   @       IN      NS      channel.e11.com.
+   @       IN      A       10.42.2.2 ; IP EISEN LB
+   granz   IN      A       10.42.2.2 ; IP EISEN LB
+   @       IN      AAAA    ::1
+   ' > /etc/bind/jarkom/channel.e11.com
+
+   echo 'options {
+         directory "/var/cache/bind";
+
+         forwarders {
+                 192.168.122.1;
+         };
+
+         // dnssec-validation auto;
+         allow-query{any;};
+         auth-nxdomain no;    # conform to RFC1035
+         listen-on-v6 { any; };
+   }; ' >/etc/bind/named.conf.options
+
+   service bind9 restart
+   ```
+
+   1. Membuat direktori `jarkom` dalam `/etc/bind` untuk menyimpan file konfigurasi.
+   2. Membuat konfigurasi zona DNS untuk `canyon.e11.com` dan `channel.e11.com` yang akan dikelola oleh server sebagai master.
+   3. Menyiapkan file data DNS untuk kedua zona tersebut dengan A records yang menunjuk ke IP Load Balancer Eisen.
+   4. Menyiapkan opsi konfigurasi DNS server seperti forwarder dan kueri yang diizinkan.
+   5. Merestart service `bind9` untuk menerapkan perubahan.
+
+2. EISEN - LOAD BALANCER
+
+   ```bash
+   echo 'upstream Lworker {
+       server 10.42.4.1:8001; # IP FERN
+       server 10.42.4.2:8002; # IP FLAMME
+       server 10.42.4.3:8003; # IP FRIEREN
+   }
+
+   server {
+       listen 80;
+       server_name riegel.canyon.e11.com;
+
+       location / {
+       proxy_pass http://Lworker;
+       proxy_set_header    X-Real-IP $remote_addr;
+       proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header    Host $http_host;
+     }
+
+     error_log /var/log/nginx/laravel_error.log;
+     access_log /var/log/nginx/laravel_access.log;
+   }
+   ' > /etc/nginx/sites-available/laravel-worker
+
+   ln -s /etc/nginx/sites-available/laravel-worker /etc/nginx/sites-enabled/laravel-worker
+   rm -rf /etc/nginx/sites-available/lb-jarkom
+   rm -rf /etc/nginx/sites-enabled/lb-jarkom
+   service nginx restart
+   nginx -t
+   ```
+
+   1. Membuat grup server upstream di Nginx yang mencakup IP dari Frieren, Flamme, dan Fern.
+   2. Mengonfigurasi server virtual untuk domain `riegel.canyon.e11.com` yang mendengarkan pada port 80.
+   3. Mengatur proxy untuk melewati request ke grup server upstream yang telah dibuat.
+   4. Menyiapkan log untuk error dan akses.
+   5. Membuat symlink dari situs yang tersedia ke situs yang diaktifkan.
+   6. Menghapus konfigurasi lama load balancer.
+   7. Merestart service Nginx untuk menerapkan perubahan dan melakukan pengecekan konfigurasi.
+
+**TESTING CLIENT (REVOLTE, RICHTER, SEIN, STARK)**
+
+```bash
+# lynx ke load balancer
+lynx http://riegel.canyon.e11.com
+
+ab -n 100 -c 10 -p login.json -T application/json http://riegel.canyon.e11.com/api/auth/login
+```
+
+1. Menggunakan `lynx` untuk mengakses Load Balancer melalui domain `riegel.canyon.e11.com`.
+2. Melakukan benchmark dengan ApacheBench untuk endpoint `/api/auth/login` pada domain yang telah dikonfigurasi dengan mengirim 100 request dan concurrency 10 menggunakan data `login.json`.
+
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/82021f65-e40a-427d-94ff-fbed778ed594)
+
 ## NO 19
 
 ## NO 20
