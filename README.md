@@ -17,6 +17,7 @@ Laporan resmi praktikum Jaringan Komputer modul 3 kelompok E11
   - [NO 3](#no-3)
   - [NO 4](#no-4)
   - [NO 5](#no-5)
+  - [NO 2-5](#no-2-5)
   - [NO 6](#no-6)
   - [NO 7](#no-7)
   - [NO 8](#no-8)
@@ -529,12 +530,276 @@ cd /root/jawaban
    ![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/5ca88bd6-7a7c-49dd-b164-2c0967857493)
 
 ## NO 2
+1. Konfigurasi DHCP Server
+
+    **a. HIMMEL - DHCP SERVER**
+    ```bash
+    echo -e '
+    subnet 10.42.1.0 netmask 255.255.255.0 {
+    }
+
+    subnet 10.42.2.0 netmask 255.255.255.0 {
+    }
+
+    subnet 10.42.3.0 netmask 255.255.255.0 {
+    }
+
+    subnet 10.42.4.0 netmask 255.255.255.0 {
+    }
+    ' > /etc/dhcp/dhcpd.conf
+    ```
+    **b. AURA - DHCP RELAY**
+    ```bash
+    # apt-get update
+    # apt-get install isc-dhcp-relay -y
+
+    echo -e '
+        SERVERS="10.42.1.1"  #IP HIMMEL DHCP SERVER
+        INTERFACES="eth1 eth2 eth3 eth4"
+    ' > /etc/default/isc-dhcp-relay
+
+    # konfigurasi IP forwarding
+    echo '
+        net.ipv4.ip_forward=1
+    ' > /etc/sysctl.conf
+
+    service isc-dhcp-relay restart
+    ```
+
+2. Client yang melalui Switch3 mendapatkan range IP dari [prefix IP].3.16 - [prefix IP].3.32 dan [prefix IP].3.64 - [prefix IP].3.80
+
+    **HIMMEL - DHCP SERVER**
+      ```bash
+      subnet 10.42.3.0 netmask 255.255.255.0 {
+        range 10.42.3.16 10.42.3.32;
+        range 10.42.3.64 10.42.3.80;
+      }
+      ```
 
 ## NO 3
+Client yang melalui Switch4 mendapatkan range IP dari [prefix IP].4.12 - [prefix IP].4.20 dan [prefix IP].4.160 - [prefix IP].4.168
+
+ **HIMMEL - DHCP SERVER**
+ ```bash
+  subnet 10.42.4.0 netmask 255.255.255.0 {
+    range 10.42.4.12 10.42.4.20;
+    range 10.42.4.160 10.42.4.168;
+  }
+ ```
 
 ## NO 4
+Client mendapatkan DNS dari Heiter dan dapat terhubung dengan internet melalui DNS tersebut
+
+ **HIMMEL - DHCP SERVER**
+ ```bash
+  subnet 10.42.3.0 netmask 255.255.255.0 {
+    option routers 10.42.3.42;
+    option broadcast-address 10.42.3.255;
+    option domain-name-servers 10.42.1.2;	# IP HEITER DNS SERVER
+  }
+
+  subnet 10.42.4.0 netmask 255.255.255.0 {
+    option routers 10.42.4.42;
+    option broadcast-address 10.42.4.255;
+    option domain-name-servers 10.42.1.2;	# IP HEITER DNS SERVER
+  }
+ ```
 
 ## NO 5
+Lama waktu DHCP server meminjamkan alamat IP kepada Client yang melalui Switch3 selama 3 menit sedangkan pada client yang melalui Switch4 selama 12 menit. Dengan waktu maksimal dialokasikan untuk peminjaman alamat IP selama 96 menit
+
+ **HIMMEL - DHCP SERVER**
+ ```bash
+  subnet 10.42.3.0 netmask 255.255.255.0 {
+    default-lease-time 180;	# 3 menit
+    max-lease-time 5760;		# 96 menit
+  }
+
+  subnet 10.42.4.0 netmask 255.255.255.0 {
+    default-lease-time 720;	# 12 menit
+    max-lease-time 5760;		# 96 menit
+  }
+ ```
+
+## NO 2-5
+1. buat fixed address untuk php dan laravel worker karena di ketentuan soal worker memiliki konfigurasi IP static. Tapi soal 2 - 5 meminta client yang melewati switch3 dan 4 mendapatkan IP berbeda
+
+2. full script no2-5.sh
+
+    **a. HIMMEL - DHCP SERVER**
+      ```bash
+      # simpan di bashrc
+      # apt update
+      # apt install isc-dhcp-server -y
+      # dhcpd --version
+
+      # tentukan interface
+      echo '
+      INTERFACESv4="eth0"
+      ' > /etc/default/isc-dhcp-server
+
+      echo -e '
+          subnet 10.42.1.0 netmask 255.255.255.0 {
+          }
+
+          subnet 10.42.2.0 netmask 255.255.255.0 {
+          }
+
+          subnet 10.42.3.0 netmask 255.255.255.0 {
+              range 10.42.3.16 10.42.3.32;
+              range 10.42.3.64 10.42.3.80;
+              option routers 10.42.3.42;
+              option broadcast-address 10.42.3.255;
+              option domain-name-servers 10.42.1.2; # IP HEITER DNS SERVER
+              default-lease-time 180; # 3 menit
+              max-lease-time 5760; # 96 menit
+          }
+
+          subnet 10.42.4.0 netmask 255.255.255.0 {
+              range 10.42.4.12 10.42.4.20;
+              range 10.42.4.160 10.42.4.168;
+              option routers 10.42.4.42;
+              option broadcast-address 10.42.4.255;
+              option domain-name-servers 10.42.1.2; # IP HEITER DNS SERVER
+              default-lease-time 720; # 12 menit
+              max-lease-time 5760; # 96 menit
+          }
+      ' > /etc/dhcp/dhcpd.conf
+
+      # fixed address
+      echo '
+      # php worker
+
+      host Lugner {
+          hardware ethernet 72:95:80:87:45:80;
+          fixed-address 10.42.3.1;
+      }
+
+      host Linie {
+          hardware ethernet f6:75:7a:b2:40:f6;
+          fixed-address 10.42.3.2;
+      }
+
+      host Lawine {
+          hardware ethernet d2:59:de:82:be:e1;
+          fixed-address 10.42.3.3;
+      }
+
+      # laravel worker
+      host Fern {
+          hardware ethernet e2:04:2c:f3:7c:04;
+          fixed-address 10.42.4.1;
+      }
+
+      host Flamme {
+          hardware ethernet 6a:a3:9f:7e:64:a2;
+          fixed-address 10.42.4.2;
+      }
+
+      host Frieren {
+          hardware ethernet 6a:14:d7:37:d9:c9;
+          fixed-address 10.42.4.3;
+      }
+      ' >> /etc/dhcp/dhcpd.conf
+
+      service isc-dhcp-server restart
+      ```
+    **b. AURA - DHCP RELAY**
+    ```bash
+    # apt-get update
+    # apt-get install isc-dhcp-relay -y
+
+    echo -e '
+        SERVERS="10.42.1.1"  #IP HIMMEL DHCP SERVER
+        INTERFACES="eth1 eth2 eth3 eth4"
+    ' > /etc/default/isc-dhcp-relay
+
+    # konfigurasi IP forwarding
+    echo '
+        net.ipv4.ip_forward=1
+    ' > /etc/sysctl.conf
+
+    service isc-dhcp-relay restart
+    ```
+    **c. PHP WORKER (LAWINE, LINIE, LUGNER)**
+      ```bash
+      # Lawine
+      echo '
+      auto eth0
+      iface eth0 inet dhcp
+      hwaddress ether d2:59:de:82:be:e1
+      ' > /etc/network/interfaces
+
+      # Linie
+      echo '
+      auto eth0
+      iface eth0 inet dhcp
+      hwaddress ether f6:75:7a:b2:40:f6
+      ' > /etc/network/interfaces
+
+      # Lugner
+      echo '
+      auto eth0
+      iface eth0 inet dhcp
+      hwaddress ether 72:95:80:87:45:80
+      ' > /etc/network/interfaces
+      ```
+    **d. LARAVEL WORKER (FRIEREN, FLAMME, FERN)**
+      ```bash
+      # Frieren
+      echo '
+      auto eth0
+      iface eth0 inet dhcp
+      hwaddress ether 6a:14:d7:37:d9:c9
+      ' > /etc/network/interfaces
+
+      # Flamme
+      echo '
+      auto eth0
+      iface eth0 inet dhcp
+      hwaddress ether 6a:a3:9f:7e:64:a2
+      ' > /etc/network/interfaces
+
+      # Fern
+      echo '
+      auto eth0
+      iface eth0 inet dhcp
+      hwaddress ether e2:04:2c:f3:7c:04
+      ' > /etc/network/interfaces
+      ```
+      
+**TESTING**
+1. HIMMEL - DHCP SERVER
+   
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/68c5faa2-8076-487c-81ff-4c6c2707021b)
+
+3. AURA - DHCP RELAY
+   
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/3039699d-2929-4944-a12a-9d007394828b)
+
+5. LAWINE
+   
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/e806597e-8078-4c8a-8ddd-491d4c3c8d34)
+
+7. LINIE
+
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/8af205a5-4eaf-4b4c-8782-0c75cc956647)
+
+9. LUGNER
+    
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/68dbb1d5-2332-4a3e-a1bb-9c3aec6cb0f4)
+
+11. FRIEREN
+    
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/e32e3392-98f4-415b-835d-2b3f0403f01c)
+
+13. FLAMME
+
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/8de924a9-a9c3-4b3f-990f-5602e2a09acd)
+
+15. FERN
+    
+![image](https://github.com/tsabitapr/Jarkom-Modul-3-E11-2023/assets/93377643/d57dcc59-06dc-4ea6-80d5-a88a7420f94d)
 
 ## NO 6
 
