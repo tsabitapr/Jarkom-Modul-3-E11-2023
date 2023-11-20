@@ -1560,9 +1560,9 @@ Output:
 
 - client dengan IP yang memenuhi syarat:
 
-  ![12](./img-output/12-allowedip.jpg)
+  ![12](./img-output/12-allowedip.png)
 
-  ![12](./img-output/12-allowed-lynx.jpg)
+  ![12](./img-output/12-allowed-lynx.png)
   
 ## NO 13
 
