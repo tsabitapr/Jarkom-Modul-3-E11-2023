@@ -2210,5 +2210,5 @@ Dapat dilihat bahwa request per second dengan menggunakan algoritma least connec
 - Unable to connect saat menjalankan lynx
   - Solusi = jalankan semua worker, jangan hanya 1 worker
 - Terkadang package yang tidak terinstall karena download terlalu lama dan nameservernya berubah secara otomatis karena dhcp server sehingga tidak dapat akses internet dan download failed
-  - Ubah lagi nameservernya dan install ulang
+  - Solusi = ubah lagi nameservernya dan install ulang
 - Sering typo nama dan path file/password:)
