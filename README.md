@@ -1557,6 +1557,12 @@ Output:
 - client dengan IP yang tidak memenuhi syarat:
 
   ![12](./img-output/12-forbidden.jpg)
+
+- client dengan IP yang memenuhi syarat:
+
+  ![12](./img-output/12-allowedip.jpg)
+
+  ![12](./img-output/12-allowed-lynx.jpg)
   
 ## NO 13
 
